@@ -10,6 +10,16 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Admin authentication
+  - name: dashboard
+    description: Workspace overview
+  - name: bots
+    description: Discord bot projects
+  - name: files
+    description: Bot workspace files
+  - name: activity
+    description: Workspace activity and tool catalog
 paths:
   /healthz:
     get:
@@ -24,7 +34,282 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in to the admin dashboard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+        "401":
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+  /auth/me:
+    get:
+      operationId: getAuthStatus
+      tags: [auth]
+      summary: Get current session status
+      responses:
+        "200":
+          description: Session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get workspace overview
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /bots:
+    get:
+      operationId: listBots
+      tags: [bots]
+      summary: List bot projects
+      responses:
+        "200":
+          description: Bot projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bot"
+    post:
+      operationId: createBot
+      tags: [bots]
+      summary: Create a bot project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotInput"
+      responses:
+        "201":
+          description: Created bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+  /bots/{id}:
+    get:
+      operationId: getBot
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Bot project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotDetail"
+    patch:
+      operationId: updateBot
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotUpdate"
+      responses:
+        "200":
+          description: Updated bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+    delete:
+      operationId: deleteBot
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Deleted bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+  /bots/{id}/start:
+    post:
+      operationId: startBot
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Started bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+  /bots/{id}/stop:
+    post:
+      operationId: stopBot
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Stopped bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+  /bots/{id}/token:
+    put:
+      operationId: saveBotToken
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenInput"
+      responses:
+        "200":
+          description: Token saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenStatus"
+    delete:
+      operationId: deleteBotToken
+      tags: [bots]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Token deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenStatus"
+  /bots/{id}/files:
+    get:
+      operationId: listBotFiles
+      tags: [files]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BotFile"
+  /bots/{id}/file:
+    get:
+      operationId: readBotFile
+      tags: [files]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - name: path
+          in: query
+          required: true
+          schema: { type: string }
+        - name: startLine
+          in: query
+          schema: { type: number, minimum: 1 }
+        - name: endLine
+          in: query
+          schema: { type: number, minimum: 1 }
+      responses:
+        "200":
+          description: File contents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContents"
+    put:
+      operationId: writeBotFile
+      tags: [files]
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileWriteInput"
+      responses:
+        "200":
+          description: File saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileContents"
+  /activity:
+    get:
+      operationId: listActivity
+      tags: [activity]
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Activity"
+  /tools:
+    get:
+      operationId: listTools
+      tags: [activity]
+      responses:
+        "200":
+          description: Available AI tools and skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tool"
 components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +318,129 @@ components:
           type: string
       required:
         - status
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, minLength: 1 }
+        password: { type: string, minLength: 1 }
+    AuthStatus:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated: { type: boolean }
+        username: { type: ["string", "null"] }
+    Bot:
+      type: object
+      required: [id, name, framework, language, status, tokenConfigured, lastActivity, updatedAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        framework: { type: string }
+        language: { type: string }
+        status: { type: string, enum: [running, stopped, error, building] }
+        tokenConfigured: { type: boolean }
+        presence: { type: string }
+        lastActivity: { type: string }
+        updatedAt: { type: string }
+    BotInput:
+      type: object
+      required: [name, framework, language]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        description: { type: string }
+        framework: { type: string }
+        language: { type: string }
+    BotUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        description: { type: string }
+        framework: { type: string }
+        language: { type: string }
+        presence: { type: string }
+    BotDetail:
+      allOf:
+        - $ref: "#/components/schemas/Bot"
+        - type: object
+          required: [files]
+          properties:
+            files:
+              type: array
+              items: { $ref: "#/components/schemas/BotFile" }
+    TokenInput:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 10 }
+    TokenStatus:
+      type: object
+      required: [configured]
+      properties:
+        configured: { type: boolean }
+        masked: { type: ["string", "null"] }
+    BotFile:
+      type: object
+      required: [path, kind, size, language]
+      properties:
+        path: { type: string }
+        kind: { type: string, enum: [file, directory] }
+        size: { type: number }
+        language: { type: string }
+    FileContents:
+      type: object
+      required: [path, content, startLine, endLine, totalLines]
+      properties:
+        path: { type: string }
+        content: { type: string }
+        startLine: { type: number }
+        endLine: { type: number }
+        totalLines: { type: number }
+    FileWriteInput:
+      type: object
+      required: [path, content]
+      properties:
+        path: { type: string }
+        content: { type: string }
+        startLine: { type: ["number", "null"] }
+        endLine: { type: ["number", "null"] }
+    Activity:
+      type: object
+      required: [id, type, title, detail, createdAt]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        createdAt: { type: string }
+    Tool:
+      type: object
+      required: [id, name, description, category, enabled]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        category: { type: string }
+        enabled: { type: boolean }
+    DashboardSummary:
+      type: object
+      required: [totalBots, runningBots, filesManaged, toolCount, providers]
+      properties:
+        totalBots: { type: number }
+        runningBots: { type: number }
+        filesManaged: { type: number }
+        toolCount: { type: number }
+        providers:
+          type: object
+          required: [discord, ollama, search]
+          properties:
+            discord: { type: string }
+            ollama: { type: string }
+            search: { type: string }
+    ActionResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
 

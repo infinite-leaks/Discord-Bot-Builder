@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Discord Bot Builder"
+description = "A Replit-ready workspace for securely building, editing, testing, and running Discord bots with AI-assisted tools, encrypted token storage, and live activity logs."
+version = "1.0.0"
+id = "artifacts/bot-builder"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18402
+
+[services.development]
+run = "pnpm --filter @workspace/bot-builder run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bot-builder", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/bot-builder/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18402"
+BASE_PATH = "/"
